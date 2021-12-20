@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vux-cv-annotation</title>
+    <style type="text/css">
+      .component {
+        display: flex;
+      }
+      .anno {
+        height: 500px;
+        padding: 0 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="component">
+        <anno
+          class="anno"
+          ref="anno"
+          :src="url"
+          :annos="annos"
+          :mode="mode"
+          mask-color="#0ff8"
+          scaleable
+          separable
+          @anno-click="click"
+          @img-load="loaded"
+        ></anno>
+        <div class="help">
+          <h3>preview</h3>
+          <p><b>scale image:</b> wheel</p>
+          <p><b>move image:</b> right drag</p>
+          <h3>edit</h3>
+          <p><b>add point in order:</b> click</p>
+          <p><b>add point near(segmentation):</b> shift+click</p>
+          <p><b>remove point:</b> right click</p>
+          <p><b>move point:</b> drag</p>
+          <p><b>new fregment:</b> ctrl+click</p>
+        </div>
+      </div>
+      <h3>operations</h3>
+      <button @click="mode = +!mode">switch mode</button>
+      <button @click="add">add-current</button>
+      <button @click="reset">reset</button>
+      <h3>painter json:</h3>
+      <textarea v-model="painterText"></textarea><br />
+      <button @click="get">get-painter</button>
+      <button @click="set">set-painter</button>
+    </div>
+    <script src="https://unpkg.com/vue@3.2.24/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-cv-annotation@0.2.3"></script>
+    <script>
+      annos = [
+        {
+          id: 1,
+          type: 0,
+          cat: 10,
+          outline: 2,
+          title: 'point',
+          data: [
+            [
+              [372.75, 52.2],
+              [389.45, 50.12],
+              [377.97, 57.42],
+              [374.83, 69.95],
+              [388.41, 68.91],
+            ],
+          ],
+        },
+        {
+          id: 2,
+          type: 1,
+          cat: 11,
+          outline: 2,
+          title: 'line',
+          data: [
+            [
+              [290.26, 427.04],
+              [349.78, 343.51],
+            ],
+            [
+              [325.76, 436.44],
+              [424.96, 368.57],
+            ],
+            [
+              [379.01, 444.79],
+              [455.24, 393.63],
+              [447.93, 433.31],
+            ],
+          ],
+        },
+        {
+          id: 3,
+          type: 2,
+          cat: 12,
+          outline: 2,
+          title: '⚠️bbox',
+          data: [
+            [
+              [7.3, 49.07],
+              [228.66, 476.12],
+            ],
+          ],
+        },
+        {
+          id: 4,
+          type: 3,
+          cat: 13,
+          outline: 2,
+          title: 'seg',
+          data: [
+            [
+              [143.04, 257.89],
+              [180.63, 258.94],
+              [161.83, 253.72],
+              [147.22, 201.51],
+              [160.79, 186.89],
+              [190.02, 177.5],
+              [216.13, 190.02],
+              [232.83, 187.94],
+              [215.09, 137.82],
+              [259.99, 58.47],
+              [286.09, 60.56],
+              [298.62, 87.71],
+              [287.13, 149.31],
+              [277.74, 182.72],
+              [325.76, 203.6],
+              [358.13, 232.84],
+              [359.18, 249.54],
+              [358.13, 287.13],
+              [369.62, 342.47],
+              [366.49, 383.19],
+              [339.34, 395.72],
+              [221.35, 398.85],
+              [159.75, 428.09],
+              [167.06, 308.01],
+            ],
+            [
+              [93.97, 318.46],
+              [109.63, 315.32],
+              [122.16, 327.85],
+              [126.34, 421.82],
+              [103.37, 401.99],
+              [85.62, 355],
+            ],
+            [
+              [389.46, 287.13],
+              [396.76, 311.15],
+              [398.85, 384.24],
+              [422.87, 369.62],
+              [432.26, 370.66],
+              [467.76, 396.76],
+              [511.62, 396.76],
+              [541.9, 364.4],
+              [597.24, 344.56],
+              [600.37, 321.59],
+              [580.53, 272.51],
+              [574.26, 255.81],
+              [553.38, 241.19],
+              [579.49, 232.84],
+              [579.49, 199.43],
+              [530.41, 183.76],
+              [459.41, 184.81],
+              [459.41, 211.96],
+              [463.59, 233.88],
+              [434.35, 240.15],
+            ],
+          ],
+        },
+      ];
+      const model = {
+        data() {
+          return {
+            url: 'static/example.jpg',
+            mode: 1,
+            annos: [...annos],
+            painter: {},
+          };
+        },
+        computed: {
+          painterText: {
+            get: function () {
+              return JSON.stringify(this.painter);
+            },
+            set: function (v) {
+              this.painter = JSON.parse(v);
+            },
+          },
+        },
+        methods: {
+          get() {
+            this.painter = this.$refs.anno.getPainter();
+          },
+          set() {
+            this.$refs.anno.setPainter(this.painter);
+            this.mode = 0;
+          },
+          add() {
+            const id = Date.now();
+            this.annos.push({ id, outline: 2, title: id, ...this.$refs.anno.getPainter() });
+            this.mode = 1;
+          },
+          reset() {
+            this.mode = 1;
+            this.annos = [...annos];
+            this.$refs.anno.reset();
+          },
+          click(id) {
+            alert(id);
+          },
+          loaded() {
+            this.$refs.anno.setPainter({
+              type: 3,
+              data: [
+                [
+                  [100, 100],
+                  [200, 100],
+                  [100, 200],
+                ],
+              ],
+            });
+          },
+        },
+      };
+      Vue.createApp(model).component('anno', window.annotation).mount('#app');
+    </script>
+  </body>
+</html>
