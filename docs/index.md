@@ -12,7 +12,8 @@
 
   ```javascript
   import Vue from 'vue';
-  import Anno from 'vue-awesome-swiper';
+  import Anno from 'vue-cv-annotation';
+  import 'vue-cv-annotation/dist/Annotation.css';
 
   // Global Registration
   Vue.component('anno', Anno);
@@ -29,9 +30,10 @@
 - HTML
 
   ```html
-  <script src="./static/vue-cv-annotation.umd.min.js"></script>
+  <script src="https://unpkg.com/vue@3.2.25/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/vue-cv-annotation@latest"></script>
   <script>
-    Vue.component('anno', window['vue-cv-annotation']);
+    Vue.component('anno', window.Annotation);
   </script>
   ```
 
@@ -43,13 +45,13 @@
   {
     src: String, // img src
     mode: Number, // 0: edit, 1: preview
-    annos: Annotation[], // annotation array
+    annos: Item[], // annotation array
     maskColor: String, // annotation's color in mode 1 (set transparent if not need)
     scaleable: Boolean, // img scaleable
     separable: Boolean, // can a annotation contain more than one shape
   }
 
-  // Annotation
+  // Item
   {
     // annotation id define by yourself
     id: 1,
