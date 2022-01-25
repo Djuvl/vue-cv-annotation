@@ -6,10 +6,10 @@ import dts from 'vite-plugin-dts';
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    cssCodeSplit: true,
+    cssCodeSplit: false,
     lib: {
-      entry: path.resolve(__dirname, 'src/components/Annotation.vue'),
-      name: 'annotation',
+      entry: path.resolve(__dirname, 'src/components/index.ts'),
+      name: 'cv-annotation',
       fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
@@ -22,10 +22,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    // dts({
-    //   outputDir: 'tmp',
-    //   copyDtsFiles: false,
-    // }),
+    // dts({ outputDir: 'tmp', copyDtsFiles: false }),
     vue(),
   ],
 });

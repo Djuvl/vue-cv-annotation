@@ -30,8 +30,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "lint": "eslint --ext .ts,.vue src && stylelint **/*.vue",
     "preview": "vite preview",
-    "test:ct": "cypress open-ct",
-    "test:e2e": "cypress open"
+    "test:ct": "cypress open-ct"
   },
   "peerDependencies": {
     "vue": "^3.2.26"

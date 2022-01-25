@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vux-cv-annotation</title>
+    <title>vue-cv-annotation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/vue-cv-annotation/dist/style.css" />
     <style type="text/css">
       .component {
         display: flex;
@@ -51,8 +52,8 @@
       <button @click="get">get-painter</button>
       <button @click="set">set-painter</button>
     </div>
-    <script src="https://unpkg.com/vue@3.2.24/dist/vue.global.prod.js"></script>
-    <script src="https://unpkg.com/vue-cv-annotation@0.2.3"></script>
+    <script src="https://unpkg.com/vue@3.2.26/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-cv-annotation"></script>
     <script>
       annos = [
         {
@@ -193,10 +194,10 @@
         },
         methods: {
           get() {
-            this.painter = this.$refs.anno.getPainter();
+            this.painter = this.$refs.anno.get();
           },
           set() {
-            this.$refs.anno.setPainter(this.painter);
+            this.$refs.anno.set(this.painter);
             this.mode = 0;
           },
           add() {
@@ -213,7 +214,7 @@
             alert(id);
           },
           loaded() {
-            this.$refs.anno.setPainter({
+            this.$refs.anno.set({
               type: 3,
               data: [
                 [
@@ -226,7 +227,7 @@
           },
         },
       };
-      Vue.createApp(model).component('anno', window.annotation).mount('#app');
+      Vue.createApp(model).component('anno', window['cv-annotation']).mount('#app');
     </script>
   </body>
 </html>
