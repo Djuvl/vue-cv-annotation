@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import HelloWorld, { Item, Expose } from './components/Annotation.vue';
+import HelloWorld, { Item, Expose } from '../../anno-vite';
 
 const test = ref<Expose | null>(null);
 const annos = ref<Item[]>([
