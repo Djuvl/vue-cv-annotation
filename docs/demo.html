@@ -197,12 +197,12 @@
             this.painter = this.$refs.anno.get();
           },
           set() {
-            this.$refs.anno.set(this.painter);
             this.mode = 0;
+            this.$refs.anno.set(this.painter.type, this.painter.data);
           },
           add() {
             const id = Date.now();
-            this.annos.push({ id, outline: 2, title: id, ...this.$refs.anno.getPainter() });
+            this.annos.push({ id, outline: 2, title: id, ...this.$refs.anno.get() });
             this.mode = 1;
           },
           reset() {
@@ -212,18 +212,6 @@
           },
           click(id) {
             alert(id);
-          },
-          loaded() {
-            this.$refs.anno.set({
-              type: 3,
-              data: [
-                [
-                  [100, 100],
-                  [200, 100],
-                  [100, 200],
-                ],
-              ],
-            });
           },
         },
       };
