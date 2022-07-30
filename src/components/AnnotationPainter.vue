@@ -16,8 +16,9 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const type = ref<0 | 1 | 2 | 3>(3);
-const data: [number, number][][] = reactive([[]]);
+let data: [number, number][][] = reactive([[]]);
 let meta: Record<string, any> | undefined = undefined;
+const mousePosition = ref([0, 0]);
 
 let activePoint: [number, number] | null = null;
 
@@ -25,7 +26,8 @@ const addPoint = (event: MouseEvent) => {
   if (event.button !== 0) return;
   const length = data.length;
   const pt: [number, number] = reactive([event.offsetX, event.offsetY]);
-  data[length - 1].push(pt);
+  if (type.value === 2 && data[length - 1].length > 1) data[length - 1][1] = pt;
+  else data[length - 1].push(pt);
   activePoint = pt;
 };
 
@@ -67,6 +69,7 @@ const getPoint = (event: MouseEvent) => {
 };
 
 const movePoint = (event: MouseEvent) => {
+  mousePosition.value = [event.offsetX, event.offsetY];
   if (activePoint) {
     activePoint[0] = event.offsetX;
     activePoint[1] = event.offsetY;
@@ -80,7 +83,7 @@ const dropPoint = () => {
 const delPoint = (event: MouseEvent) => {
   const [gIdx, idx] = (event.target as HTMLElement).dataset.index!.split('|');
   data[+gIdx].splice(+idx, 1);
-  if (data[+gIdx].length === 0) data.splice(+gIdx, 1);
+  if (data[+gIdx].length === 0 && data.length > 1) data.splice(+gIdx, 1);
 };
 
 const pointToSegDist: (a: [number, number], b: [number, number], c: [number, number]) => number = (
@@ -102,10 +105,10 @@ const get = () => {
   return { type: type.value, data: data.map((v) => v.map((v) => v.map((v) => v * props.ratio))), meta: meta };
 };
 
-const set = (type: 0 | 1 | 2 | 3, data: [number, number][][], meta?: Record<string, any>) => {
-  type = type;
-  data = data.map((v) => v.map((v) => v.map((v) => v * props.ratio) as [number, number]));
-  meta = meta;
+const set = (t: 0 | 1 | 2 | 3, d: [number, number][][], m?: Record<string, any>) => {
+  type.value = t;
+  data.splice(0, data.length, ...d.map((v) => v.map((v) => v.map((v) => v * props.ratio) as [number, number])));
+  meta = m;
 };
 
 defineExpose({ get, set });
@@ -120,6 +123,9 @@ defineExpose({ get, set });
     @mousemove.stop="movePoint"
     @mouseup.stop="dropPoint",
   )
+    g
+     line(x1="0", :y1="mousePosition[1]", x2="100%", :y2="mousePosition[1]", :stroke-width="1 / scale", stroke="red")
+     line(:x1="mousePosition[0]", y1="0", :x2="mousePosition[0]", y2="100%",:stroke-width="1 / scale", stroke="red")
     path(
       v-if="type === 1",
       :d="data.map((v) => v.length ? `M${v.map((p) => `${p[0]},${p[1]}`).join('L')}` : '').join('')",
@@ -130,10 +136,10 @@ defineExpose({ get, set });
     template(v-else-if="type === 2")
       rect(
         v-for="rect in data.filter((v) => v.length > 1)",
-        :x="rect[0][0]",
-        :y="rect[0][1]",
-        :width="rect[1][0] - rect[0][0]",
-        :height="rect[1][1] - rect[0][1]",
+        :x="Math.min(rect[0][0], rect[1][0])",
+        :y="Math.min(rect[0][1], rect[1][1])",
+        :width="Math.abs(rect[1][0] - rect[0][0])",
+        :height="Math.abs(rect[1][1] - rect[0][1])",
         :stroke-width="1 / scale",
         fill="none",
         stroke="white"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 import AnnoPainter from './AnnotationPainter.vue';
 import type { Painter } from './AnnotationPainter.vue';
 
@@ -105,7 +105,10 @@ const reset = () => Object.assign(viewTransfrom, { scale: 1, tX: 0, tY: 0 });
 
 const get = () => painter.value?.get();
 
-const set: Painter['set'] = (...args) => painter.value?.set(...args);
+const set: Painter['set'] = async (...args) => {
+  if (!painter.value) await nextTick();
+  painter.value?.set(...args);
+};
 
 defineExpose({
   reset,

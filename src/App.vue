@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import HelloWorld, { Item, Expose } from '../../anno-vite';
+// import HelloWorld, { Item, Expose } from './components';
 
 const test = ref<Expose | null>(null);
+const mode = ref(1);
 const annos = ref<Item[]>([
   {
     id: 1,
@@ -19,7 +21,10 @@ const annos = ref<Item[]>([
     ],
   },
 ]);
-
+const init = () => {
+  mode.value = 0;
+  test.value?.set(2, [[]]);
+};
 const get = () => {
   console.log(test.value?.get());
 };
@@ -32,7 +37,8 @@ const get = () => {
     class="h-96"
     src="https://t7.baidu.com/it/u=2701208059,2978966657&fm=193&f=GIF"
     :annos="annos"
-    :mode="0"
+    :mode="mode"
+    @img-load="init"
   >
   </HelloWorld>
 </template>
