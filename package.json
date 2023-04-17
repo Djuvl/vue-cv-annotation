@@ -1,6 +1,6 @@
 {
   "name": "vue-cv-annotation",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "vue image annotation preview and edit tool, can be used for CV",
   "files": [
     "dist",
