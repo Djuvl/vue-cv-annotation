@@ -173,6 +173,7 @@
           ],
         },
       ];
+      annos.map((v) => (v.data = v.data.map((v) => v.map((v) => [v[0] / 639, v[1] / 480]))));
       const model = {
         data() {
           return {

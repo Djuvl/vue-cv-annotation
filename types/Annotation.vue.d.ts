@@ -1,13 +1,16 @@
 import type { Painter } from './AnnotationPainter.vue';
+export declare type Mode = 0 | 1;
+export declare type AnnoType = 0 | 1 | 2 | 3;
+export declare type OutlineType = 0 | 1 | 2;
 export declare type Expose = {
     reset: () => void;
 } & Painter;
 export declare type Item = {
     id: number | string;
     title: string;
-    type: 0 | 1 | 2 | 3;
+    type: AnnoType;
     cat: number;
-    outline: 0 | 1 | 2;
+    outline: OutlineType;
     data: [number, number][][];
 };
 declare const _default: import("vue").DefineComponent<{
@@ -16,7 +19,7 @@ declare const _default: import("vue").DefineComponent<{
         required: true;
     };
     mode: {
-        type: import("vue").PropType<number>;
+        type: import("vue").PropType<Mode>;
     } & {
         default: number;
     };
@@ -24,6 +27,11 @@ declare const _default: import("vue").DefineComponent<{
         type: import("vue").PropType<Item[]>;
     } & {
         default: () => never[];
+    };
+    anno: {
+        type: import("vue").PropType<Item>;
+    } & {
+        default: undefined;
     };
     maskColor: {
         type: import("vue").PropType<string>;
@@ -39,6 +47,11 @@ declare const _default: import("vue").DefineComponent<{
         type: import("vue").PropType<boolean>;
     } & {
         default: boolean;
+    };
+    uiScale: {
+        type: import("vue").PropType<number>;
+    } & {
+        default: number;
     };
 }, () => void, unknown, {}, {}, import("vue").ComponentOptionsMixin, import("vue").ComponentOptionsMixin, {
     "img-load": () => void;
@@ -50,7 +63,7 @@ declare const _default: import("vue").DefineComponent<{
         required: true;
     };
     mode: {
-        type: import("vue").PropType<number>;
+        type: import("vue").PropType<Mode>;
     } & {
         default: number;
     };
@@ -58,6 +71,11 @@ declare const _default: import("vue").DefineComponent<{
         type: import("vue").PropType<Item[]>;
     } & {
         default: () => never[];
+    };
+    anno: {
+        type: import("vue").PropType<Item>;
+    } & {
+        default: undefined;
     };
     maskColor: {
         type: import("vue").PropType<string>;
@@ -74,14 +92,21 @@ declare const _default: import("vue").DefineComponent<{
     } & {
         default: boolean;
     };
+    uiScale: {
+        type: import("vue").PropType<number>;
+    } & {
+        default: number;
+    };
 }>> & {
     "onImg-load"?: (() => any) | undefined;
     "onAnno-click"?: ((id: string | number) => any) | undefined;
 }, {
-    mode: number;
+    mode: Mode;
     separable: boolean;
+    anno: Item;
     annos: Item[];
     maskColor: string;
     scaleable: boolean;
+    uiScale: number;
 }>;
 export default _default;

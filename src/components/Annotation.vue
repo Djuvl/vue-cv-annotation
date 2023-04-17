@@ -3,31 +3,39 @@ import { computed, nextTick, reactive, ref } from 'vue';
 import AnnoPainter from './AnnotationPainter.vue';
 import type { Painter } from './AnnotationPainter.vue';
 
+export type Mode = 0 | 1;
+export type AnnoType = 0 | 1 | 2 | 3;
+export type OutlineType = 0 | 1 | 2;
+
 export type Expose = { reset: () => void } & Painter;
 export type Item = {
   id: number | string;
   title: string;
-  type: 0 | 1 | 2 | 3;
+  type: AnnoType;
   cat: number;
-  outline: 0 | 1 | 2;
+  outline: OutlineType;
   data: [number, number][][];
 };
 
 type Props = {
   src: string;
-  mode?: number;
+  mode?: Mode;
   annos?: Item[];
+  anno?: Item;
   maskColor?: string;
   scaleable?: boolean;
   separable?: boolean;
+  uiScale?: number;
 };
 
 const props = withDefaults(defineProps<Props>(), {
   mode: 1,
   annos: () => [],
+  anno: undefined,
   maskColor: '#0ff3',
   scaleable: true,
   separable: true,
+  uiScale: 1,
 });
 
 const emit = defineEmits<{
@@ -36,7 +44,6 @@ const emit = defineEmits<{
 }>();
 
 const img = ref<HTMLImageElement | null>(null);
-const size = ref<[number, number]>([100, 100]);
 const curAnno = ref<Item | null>(null);
 const painter = ref<Painter | null>(null);
 const viewTransfrom = reactive({ scale: 1, tX: 0, tY: 0 });
@@ -48,11 +55,7 @@ const code = ['4', 'a', '7', 'd'];
 const typeColors: string[] = [];
 for (var a of code) for (var b of code) for (var c of code) typeColors.push('#' + c + b + a);
 
-const imgLoad = () => {
-  size.value = [img.value!.naturalWidth, img.value!.naturalHeight];
-  emit('img-load');
-};
-
+const imgLoad = () => emit('img-load');
 const getColor = (seq = 0) => {
   return props.mode ? typeColors[seq % 64] : props.maskColor;
 };
@@ -66,10 +69,10 @@ const getBbox = (anno: Item) => {
   const height = Math.max(0, ...yArray) - yMin;
 
   return {
-    top: (yMin * 100) / size.value[1] + '%',
-    left: (xMin * 100) / size.value[0] + '%',
-    width: (width * 100) / size.value[0] + '%',
-    height: (height * 100) / size.value[1] + '%',
+    top: yMin * 100 + '%',
+    left: xMin * 100 + '%',
+    width: width * 100 + '%',
+    height: height * 100 + '%',
   };
 };
 
@@ -126,9 +129,9 @@ div(class="grid grid-cols-[1fr_auto_1fr] grid-rows-[1fr_minmax(0,_auto)_1fr] ove
     :style="{ transform: `scale(${viewTransfrom.scale}) translate(${viewTransfrom.tX}px,${viewTransfrom.tY}px)` }"
     data-cy="root"
   )
-    img.max-h-full.max-w-full(:src="src", ref="img", @load="imgLoad")
+    img.block.max-h-full.max-w-full(:src="src", ref="img", @load="imgLoad")
     .absolute.w-full.h-full.top-0
-      svg.h-full.w-full(:viewBox="`0 0 ${size[0]} ${size[1]}`")
+      svg.h-full.w-full(viewBox="0 0 1 1" preserveAspectRatio='none')
         template(v-for="anno in annos")
           g(
             v-if="anno.type === 0",
@@ -136,12 +139,13 @@ div(class="grid grid-cols-[1fr_auto_1fr] grid-rows-[1fr_minmax(0,_auto)_1fr] ove
             @mouseenter="setCurAnno(anno.id)",
             @mouseout="cancelCurAnno(anno.id)"
           )
-            circle(
+            path(
               v-for="pt in anno.data[0]",
-              :cx="pt[0]",
-              :cy="pt[1]",
-              :fill="getColor(anno.cat)",
-              :r="7 / viewTransfrom.scale"
+              :d="`M ${pt[0]} ${pt[1]} l 0.0001 0`"
+              :stroke="getColor(anno.cat)",
+              :stroke-width="7 / viewTransfrom.scale * uiScale"
+              vector-effect="non-scaling-stroke"
+              stroke-linecap="round"
             )
           g(
             v-else-if="anno.type === 1",
@@ -153,16 +157,20 @@ div(class="grid grid-cols-[1fr_auto_1fr] grid-rows-[1fr_minmax(0,_auto)_1fr] ove
               v-for="line in anno.data",
               :points="line.reduce((str, v) => `${str} ${v[0]},${v[1]}`, '')",
               :stroke="getColor(anno.cat)",
-              :stroke-width="5 / viewTransfrom.scale",
+              :stroke-width="2 / viewTransfrom.scale * uiScale",
               fill="none",
               style="pointer-events: stroke"
+              vector-effect="non-scaling-stroke"
+              stroke-linejoin="round"
+              stroke-linecap="round"
             )
-          circle(
+          path(
             v-else-if="anno.type === 2",
-            :cx="anno.data[0][0][0] / 2 + anno.data[0][1][0] / 2",
-            :cy="anno.data[0][0][1] / 2 + anno.data[0][1][1] / 2",
-            :fill="getColor(anno.cat) + (mode ? '7' : '')",
-            :r="Math.min(15, (anno.data[0][1][0] - anno.data[0][0][0]) / 2, (anno.data[0][1][1] - anno.data[0][0][1]) / 2)",
+            vector-effect="non-scaling-stroke"
+            :d="`M ${(anno.data[0][0][0] + anno.data[0][1][0]) / 2} ${(anno.data[0][0][1] + anno.data[0][1][1]) / 2} l 0.0001 0`"
+            :stroke="getColor(anno.cat) + (mode ? '7' : '')",
+            :stroke-width="16 / viewTransfrom.scale * uiScale"
+            stroke-linecap="round"
             @click="$emit('anno-click', anno.id)",
             @mouseenter="setCurAnno(anno.id)",
             @mouseout="cancelCurAnno(anno.id)"
@@ -171,9 +179,11 @@ div(class="grid grid-cols-[1fr_auto_1fr] grid-rows-[1fr_minmax(0,_auto)_1fr] ove
             v-else,
             :d="anno.data.map((v) => `M${v.map((p) => `${p[0]},${p[1]}`).join('L')}z`).join('')",
             :fill="getColor(anno.cat) + (mode ? '5' : '')",
-            :stroke-width="(mode ? 2 : 0) / viewTransfrom.scale",
+            :stroke-width="(mode ? 1 : 0) / viewTransfrom.scale * uiScale",
             stroke="white",
             fill-rule="evenodd",
+            stroke-linejoin="round"
+            vector-effect="non-scaling-stroke"
             @click="$emit('anno-click', anno.id)",
             @mouseenter="setCurAnno(anno.id)",
             @mouseout="cancelCurAnno(anno.id)"
@@ -187,6 +197,6 @@ div(class="grid grid-cols-[1fr_auto_1fr] grid-rows-[1fr_minmax(0,_auto)_1fr] ove
         v-for="anno in outlineAnnos",
         :style="[getBbox(anno), { borderColor: getColor(anno.cat) + '6' }]"
       ) {{ anno.outline === 2 ? anno.title : '' }}
-      div(v-if="curAnno", class="bg-[#0003] m-[-3px] absolute box-content text-base text-white border-2 border-solid border-red-500 p-px", :style="getBbox(curAnno)") {{ curAnno.title }}
-    AnnoPainter(v-if="img && !mode", ref="painter", data-cy="painter", :ratio="img.width / img.naturalWidth", :scale="viewTransfrom.scale")
+      div(v-if="curAnno", class="border-solid p-px bg-[#0003] border-2 border-red-500 m-[-3px] text-base text-white absolute box-content", :style="getBbox(curAnno)") {{ curAnno.title }}
+    AnnoPainter(v-if="img && !mode", ref="painter", data-cy="painter", :anno="props.anno", :scale="viewTransfrom.scale / uiScale")
 </template>
